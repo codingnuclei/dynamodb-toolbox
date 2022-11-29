@@ -1,7 +1,7 @@
 import type { DocumentClient } from 'aws-sdk/clients/dynamodb'
 import type { A, B, O, F } from 'ts-toolbelt'
 
-import type { FirstDefined, If } from '../../lib/utils'
+import type { Compute, FirstDefined, If } from '../../lib/utils'
 import type { DynamoDBKeyTypes, DynamoDBTypes, $QueryOptions, TableDef } from '../Table'
 import Entity from './Entity'
 
@@ -14,6 +14,7 @@ export interface EntityConstructor<
   CreatedAlias extends string = 'created',
   ModifiedAlias extends string = 'modified',
   TypeAlias extends string = 'entity',
+  TypeHidden extends boolean = false,
   ReadonlyAttributeDefinitions extends Readonly<AttributeDefinitions> = Readonly<AttributeDefinitions>
 > {
   table?: EntityTable
@@ -24,6 +25,7 @@ export interface EntityConstructor<
   createdAlias?: CreatedAlias
   modifiedAlias?: ModifiedAlias
   typeAlias?: TypeAlias
+  typeHidden?: TypeHidden
   attributes: ReadonlyAttributeDefinitions
   autoExecute?: AutoExecute
   autoParse?: AutoParse
@@ -40,6 +42,7 @@ export type KeyAttributeDefinition = {
   onUpdate: boolean
   dependsOn: string | string[]
   transform: (value: any, data: any) => any
+  format: (value: any, data: any) => any
   coerce: boolean
   // 💥 TODO: Are following options forbidden in KeyAttributeDefinitions ?
   save: never
@@ -78,6 +81,7 @@ export type PureAttributeDefinition = O.Partial<{
   dependsOn: string | string[]
   // 🔨 TOIMPROVE: Probably typable
   transform: (value: any, data: {}) => any
+  format: (value: any, data: {}) => any
   coerce: boolean
   save: boolean
   onUpdate: boolean
@@ -144,6 +148,7 @@ export type ParseAttributes<
   CreatedAlias extends string,
   ModifiedAlias extends string,
   TypeAlias extends string,
+  TypeHidden extends boolean,
   Aliases extends string =
     | (Timestamps extends true ? CreatedAlias | ModifiedAlias : never)
     | TypeAlias,
@@ -227,7 +232,9 @@ export type InferItemAttributeValue<
     | GSISortKeyDefinition
     | PureAttributeDefinition
     ? Definition['type'] extends DynamoDBTypes
-      ? FromDynamoData<A.Cast<Definition['type'], DynamoDBTypes>>
+      ? Definition['setType'] extends DynamoDBKeyTypes
+        ? FromDynamoData<NonNullable<Definition['setType']>>[]
+        : FromDynamoData<A.Cast<Definition['type'], DynamoDBTypes>>
       : any
     : never
   composite: Definition extends CompositeAttributeDefinition
@@ -292,7 +299,7 @@ export type CompositePrimaryKeyPart<
 export type InferCompositePrimaryKey<
   Item extends O.Object,
   Attributes extends ParsedAttributes
-> = A.Compute<
+> = Compute<
   CompositePrimaryKeyPart<Item, Attributes, 'partitionKey'> &
     CompositePrimaryKeyPart<Item, Attributes, 'sortKey'>
 >
@@ -380,15 +387,19 @@ export type $PutOptions<
   Execute extends boolean | undefined = undefined,
   Parse extends boolean | undefined = undefined,
   StrictSchemaCheck extends boolean | undefined = true
-> = O.Partial<$WriteOptions<Attributes, Execute, Parse> & { returnValues: ReturnValues, strictSchemaCheck?: StrictSchemaCheck }>
+> = O.Partial<
+  $WriteOptions<Attributes, Execute, Parse> & {
+    returnValues: ReturnValues
+    strictSchemaCheck?: StrictSchemaCheck
+  }
+>
 
 export type $PutBatchOptions<
   Execute extends boolean | undefined = undefined,
   Parse extends boolean | undefined = undefined,
   StrictSchemaCheck extends boolean | undefined = true
 > = O.Partial<
-  Pick<BaseOptions<Execute, Parse>, 'execute' |'parse'>
-  & { strictSchemaCheck?: StrictSchemaCheck }
+  Pick<BaseOptions<Execute, Parse>, 'execute' | 'parse'> & { strictSchemaCheck?: StrictSchemaCheck }
 >
 
 export type PutItem<
@@ -399,18 +410,19 @@ export type PutItem<
   Attributes extends ParsedAttributes,
   StrictSchemaCheck extends boolean | undefined = true
 > = FirstDefined<
-  [
-    MethodItemOverlay,
-    EntityItemOverlay,
-    A.Compute<
-      CompositePrimaryKey &
-        O.Pick<Item, Attributes['always']['input'] | Attributes['required']['input']> &
-        O.Partial<
-          O.Pick<Item, Attributes['always']['default'] | Attributes['required']['default']> &
-            O.Update<Item, Attributes['optional'], A.x | null>
-        >
-    >
-  ] | If<A.Equals<StrictSchemaCheck, true>, never, any>
+  | [
+      MethodItemOverlay,
+      EntityItemOverlay,
+      Compute<
+        CompositePrimaryKey &
+          O.Pick<Item, Attributes['always']['input'] | Attributes['required']['input']> &
+          O.Partial<
+            O.Pick<Item, Attributes['always']['default'] | Attributes['required']['default']> &
+              O.Update<Item, Attributes['optional'], A.x | null>
+          >
+      >
+    ]
+  | If<A.Equals<StrictSchemaCheck, true>, never, any>
 >
 
 export type UpdateOptionsReturnValues =
@@ -426,7 +438,12 @@ export type $UpdateOptions<
   Execute extends boolean | undefined = undefined,
   Parse extends boolean | undefined = undefined,
   StrictSchemaCheck extends boolean | undefined = true
-> = O.Partial<$WriteOptions<Attributes, Execute, Parse> & { returnValues: ReturnValues, strictSchemaCheck?: StrictSchemaCheck }>
+> = O.Partial<
+  $WriteOptions<Attributes, Execute, Parse> & {
+    returnValues: ReturnValues
+    strictSchemaCheck?: StrictSchemaCheck
+  }
+>
 
 export interface UpdateCustomParameters {
   SET: string[]
@@ -445,31 +462,64 @@ export type UpdateItem<
   Attributes extends ParsedAttributes,
   StrictSchemaCheck extends boolean | undefined = true
 > = FirstDefined<
-  [
-    MethodItemOverlay,
-    EntityItemOverlay,
-    A.Compute<
-      CompositePrimaryKey &
-        {
-          [inputAttr in Attributes['always']['input']]:
-            | Item[A.Cast<inputAttr, keyof Item>]
-            | { $delete?: string[]; $add?: any; $prepend?: any[]; $append?: any[] }
-        } &
-        {
-          [optAttr in Attributes['required']['all'] | Attributes['always']['default']]?:
-            | Item[A.Cast<optAttr, keyof Item>]
-            | { $delete?: string[]; $add?: any; $prepend?: any[]; $append?: any[] }
-        } &
-        {
-          [attr in Attributes['optional']]?:
-            | null
-            | Item[A.Cast<attr, keyof Item>]
-            | { $delete?: string[]; $add?: any; $append?: any[]; $prepend?: any[] }
-        } & { $remove?: Attributes['optional'] | Attributes['optional'][] }
-    >
-  ]
+  | [
+      MethodItemOverlay,
+      EntityItemOverlay,
+      Compute<
+        CompositePrimaryKey &
+          {
+            [inputAttr in Attributes['always']['input'] & keyof Item]: AttributeUpdateInput<
+              Item[inputAttr]
+            >
+          } &
+          {
+            [inputRequiredOrWithDefaultAttribute in (
+              | Attributes['required']['all']
+              | Attributes['required']['default']
+              | Attributes['required']['input']
+              | Attributes['always']['default']
+            ) &
+              keyof Item]?: AttributeUpdateInput<Item[inputRequiredOrWithDefaultAttribute]>
+          } &
+          {
+            [inputOptionalAttribute in Attributes['optional'] & keyof Item]?: AttributeUpdateInput<
+              Item[inputOptionalAttribute]
+            > | null
+          } & { $remove?: Attributes['optional'] | Attributes['optional'][] }
+      >
+    ]
   | If<A.Equals<StrictSchemaCheck, true>, never, any>
 >
+
+export type AttributeUpdateInput<AttributeType> =
+  | If<
+      B.Or<A.Equals<AttributeType, FromDynamoData<'list' | 'set'>>, A.Equals<AttributeType, FromDynamoData<'list' | 'set'> | undefined>>,
+      | {
+          $delete?: string[]
+          $add?: any
+          $prepend?: AttributeType
+          $append?: AttributeType
+          $remove?: number[]
+        }
+      | AttributeType,
+      AttributeType
+    >
+  | If<
+      B.Or<A.Equals<AttributeType, number[]>, A.Equals<AttributeType, number[] | undefined>>,
+      | { $delete?: number[]; $add?: number[]; $prepend?: AttributeType; $append?: number[] }
+      | string[]
+    >
+  | If<
+      B.Or<A.Equals<AttributeType, string[]>, A.Equals<AttributeType, string[] | undefined>>,
+      | { $delete?: string[]; $add?: string[]; $prepend?: AttributeType; $append?: string[] }
+      | number[]
+    >
+  | If<
+      B.Or<A.Equals<AttributeType, boolean[]>, A.Equals<AttributeType, boolean[] | undefined>>,
+      | { $delete?: boolean[]; $add?: boolean[]; $prepend?: AttributeType; $append?: boolean[] }
+      | boolean[]
+    >
+  | If<B.Or<A.Equals<AttributeType, FromDynamoData<'number'>>, A.Equals<AttributeType, FromDynamoData<'number'> | undefined>>, { $add?: number }>
 
 export type DeleteOptionsReturnValues = 'NONE' | 'ALL_OLD'
 
@@ -477,7 +527,7 @@ export type RawDeleteOptions<
   Attributes extends A.Key = A.Key,
   ReturnValues extends DeleteOptionsReturnValues = DeleteOptionsReturnValues,
   Execute extends boolean | undefined = undefined,
-  Parse extends boolean | undefined = undefined,
+  Parse extends boolean | undefined = undefined
 > = O.Partial<$WriteOptions<Attributes, Execute, Parse> & { returnValues: ReturnValues }>
 
 export type TransactionOptionsReturnValues = 'NONE' | 'ALL_OLD'
@@ -485,9 +535,9 @@ export type TransactionOptionsReturnValues = 'NONE' | 'ALL_OLD'
 export interface TransactionOptions<
   Attributes extends A.Key = A.Key,
   StrictSchemaCheck extends boolean | undefined = true
-  > {
+> {
   conditions?: ConditionsOrFilters<Attributes>
-  returnValues?: TransactionOptionsReturnValues,
+  returnValues?: TransactionOptionsReturnValues
   strictSchemaCheck?: StrictSchemaCheck
 }
 
@@ -524,7 +574,8 @@ export type InferEntityItem<
     E['timestamps'],
     E['createdAlias'],
     E['modifiedAlias'],
-    E['typeAlias']
+    E['typeAlias'],
+    E['typeHidden']
   >,
   Item = InferItem<WritableAttributeDefinitions, Attributes>
 > = Pick<Item, Extract<Attributes['shown'], keyof Item>>
@@ -545,7 +596,8 @@ export type ExtractAttributes<
       E['timestamps'],
       E['createdAlias'],
       E['modifiedAlias'],
-      E['typeAlias']
+      E['typeAlias'],
+      E['typeHidden']
     >
 
 export type GetOptions<
@@ -561,7 +613,13 @@ export type QueryOptions<
 export type PutOptions<
   E extends Entity,
   A extends ParsedAttributes = ExtractAttributes<E>
-> = $PutOptions<A['all'], PutOptionsReturnValues, boolean | undefined, boolean | undefined, boolean | undefined>
+> = $PutOptions<
+  A['all'],
+  PutOptionsReturnValues,
+  boolean | undefined,
+  boolean | undefined,
+  boolean | undefined
+>
 
 export type DeleteOptions<
   E extends Entity,
@@ -571,4 +629,10 @@ export type DeleteOptions<
 export type UpdateOptions<
   E extends Entity,
   A extends ParsedAttributes = ExtractAttributes<E>
-> = $UpdateOptions<A['all'], UpdateOptionsReturnValues, boolean | undefined, boolean | undefined, boolean | undefined>
+> = $UpdateOptions<
+  A['all'],
+  UpdateOptionsReturnValues,
+  boolean | undefined,
+  boolean | undefined,
+  boolean | undefined
+>
