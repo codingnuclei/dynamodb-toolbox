@@ -159,7 +159,6 @@ describe('Entity creation', () => {
       DocumentClient
     })
 
-
     const TestEntity = new Entity({
       name: 'TestEntity-3',
       attributes: {

@@ -24,7 +24,6 @@ const TestEntity = new Entity({
   table: TestTable
 })
 
-
 describe('Parse alias attributes', () => {
   it('successfully parse item with alias same as field', () => {
     const item = TestEntity.parse({

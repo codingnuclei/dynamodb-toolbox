@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: [ 14, 16, 18 ]
+        node: [14, 16, 18]
     name: Node ${{ matrix.node }}
     steps:
       - name: 'Checkout latest code'
@@ -59,3 +59,5 @@ jobs:
         run: npm ci --legacy-peer-deps
       - name: Run ESLint
         run: npm run lint
+      - name: Run Prettier
+        run: npm run format:check

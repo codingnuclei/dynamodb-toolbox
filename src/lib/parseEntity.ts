@@ -45,7 +45,7 @@ export type ParsedEntity<
   linked: Linked
   defaults: any
   required: any
-  table?: EntityTable | undefined,
+  table?: EntityTable | undefined
   setTable?: (table: EntityTable | undefined) => void
 }
 
@@ -145,7 +145,7 @@ export function parseEntity<
 
   // Add timestamps
   if (timestamps) {
-    (attributes as AttributeDefinitions)[created] = {
+    ;(attributes as AttributeDefinitions)[created] = {
       type: 'string',
       alias: createdAlias,
       default: () => new Date().toISOString()

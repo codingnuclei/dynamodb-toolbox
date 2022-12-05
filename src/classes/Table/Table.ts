@@ -8,7 +8,7 @@ import Entity from '../Entity'
 import {
   default as parseProjections,
   ProjectionAttributes,
-  ProjectionAttributesTable,
+  ProjectionAttributesTable
 } from '../../lib/projectionBuilder'
 import type { ParsedEntity } from '../../lib/parseEntity'
 import type {
@@ -23,7 +23,7 @@ import type {
   TransactGetParamsMeta,
   transactGetParamsOptions,
   TransactWriteOptions,
-  transactWriteParamsOptions,
+  transactWriteParamsOptions
 } from './types'
 
 import { error, conditionError, If, Compute } from '../../lib/utils'
@@ -89,7 +89,7 @@ class Table<Name extends string, PartitionKey extends A.Key, SortKey extends A.K
 
   // Validate and sets the document client (extend with options.convertEmptyValues because it's not typed)
   set DocumentClient(
-    docClient: (DocumentClient & { options?: { convertEmptyValues: boolean } }) | undefined,
+    docClient: (DocumentClient & { options?: { convertEmptyValues: boolean } }) | undefined
   ) {
     // If a valid document client
     // @ts-ignore
@@ -127,7 +127,7 @@ class Table<Name extends string, PartitionKey extends A.Key, SortKey extends A.K
 
       // Generate the reserved words list
       const reservedWords = Object.getOwnPropertyNames(this).concat(
-        Object.getOwnPropertyNames(Object.getPrototypeOf(this)),
+        Object.getOwnPropertyNames(Object.getPrototypeOf(this))
       )
 
       // Check for reserved word
@@ -161,7 +161,7 @@ class Table<Name extends string, PartitionKey extends A.Key, SortKey extends A.K
                 entity.schema.attributes[this.Table[key]!] = Object.assign(
                   {},
                   entity.schema.attributes[attr],
-                  { alias: attr },
+                  { alias: attr }
                 ) // end assign
                 // Add a map from the attribute to the new index attribute
                 entity.schema.attributes[attr].map = this.Table[key]
@@ -169,15 +169,16 @@ class Table<Name extends string, PartitionKey extends A.Key, SortKey extends A.K
               } else {
                 error(
                   `The Table's ${key} name (${String(
-                    this.Table[key],
-                  )}) conflicts with an Entity attribute name`,
+                    this.Table[key]
+                  )}) conflicts with an Entity attribute name`
                 )
               } // end if-else
             } // end if
             break
 
           // For secondary indexes
-          default: // end for
+          default:
+            // end for
             // Verify that the table has this index
             if (!this.Table.indexes[key]) error(`'${key}' is not a valid secondary index name`)
 
@@ -202,11 +203,11 @@ class Table<Name extends string, PartitionKey extends A.Key, SortKey extends A.K
                   if (
                     entity.schema.attributes[attr[keyType]].map &&
                     entity.schema.attributes[attr[keyType]].map !==
-                    // @ts-ignore
-                    this.Table.indexes[key][keyType]
+                      // @ts-ignore
+                      this.Table.indexes[key][keyType]
                   ) {
                     error(
-                      `${key}'s ${keyType} cannot map to the '${attr[keyType]}' alias because it is already mapped to another table attribute`,
+                      `${key}'s ${keyType} cannot map to the '${attr[keyType]}' alias because it is already mapped to another table attribute`
                     )
                   }
 
@@ -215,7 +216,7 @@ class Table<Name extends string, PartitionKey extends A.Key, SortKey extends A.K
                   entity.schema.attributes[this.Table.indexes[key][keyType]] = Object.assign(
                     {},
                     entity.schema.attributes[attr[keyType]],
-                    { alias: attr[keyType] },
+                    { alias: attr[keyType] }
                   ) // end assign
                   // Add a map from the attribute to the new index attribute
                   // @ts-ignore
@@ -232,7 +233,7 @@ class Table<Name extends string, PartitionKey extends A.Key, SortKey extends A.K
                   ) {
                     error(
                       // @ts-ignore
-                      `${key}'s ${keyType} name (${this.Table.indexes[key][keyType]}) conflicts with another Entity attribute name`,
+                      `${key}'s ${keyType} name (${this.Table.indexes[key][keyType]}) conflicts with another Entity attribute name`
                     )
                   } // end if
                 } // end if-else
@@ -262,7 +263,7 @@ class Table<Name extends string, PartitionKey extends A.Key, SortKey extends A.K
           (attr === this.Table.entityField || attr === entity._etAlias)
         ) {
           error(
-            `Attribute or alias '${attr}' conflicts with the table's 'entityField' mapping or entity alias`,
+            `Attribute or alias '${attr}' conflicts with the table's 'entityField' mapping or entity alias`
           )
 
           // If the atribute already exists in the table definition
@@ -273,19 +274,19 @@ class Table<Name extends string, PartitionKey extends A.Key, SortKey extends A.K
             this.Table.attributes[attr].type !== entity.schema.attributes[attr].type
           ) {
             error(
-              `${entity.name} attribute type for '${attr}' (${entity.schema.attributes[attr].type}) does not match table's type (${this.Table.attributes[attr].type})`,
+              `${entity.name} attribute type for '${attr}' (${entity.schema.attributes[attr].type}) does not match table's type (${this.Table.attributes[attr].type})`
             )
           }
 
           // Add entity mappings
           this.Table.attributes[attr].mappings[entity.name] = Object.assign(
             {
-              [entity.schema.attributes[attr].alias || attr]: entity.schema.attributes[attr].type,
+              [entity.schema.attributes[attr].alias || attr]: entity.schema.attributes[attr].type
             },
             // Add setType if type 'set'
             entity.schema.attributes[attr].type === 'set'
               ? { _setType: entity.schema.attributes[attr].setType }
-              : {},
+              : {}
           )
 
           // else if the attribute doesn't exist
@@ -296,19 +297,19 @@ class Table<Name extends string, PartitionKey extends A.Key, SortKey extends A.K
               mappings: {
                 [entity.name]: Object.assign(
                   {
-                    [entity.schema.attributes[attr].alias || attr]:
-                    entity.schema.attributes[attr].type,
+                    [entity.schema.attributes[attr].alias || attr]: entity.schema.attributes[attr]
+                      .type
                   },
                   // Add setType if type 'set'
                   entity.schema.attributes[attr].type === 'set'
                     ? { _setType: entity.schema.attributes[attr].setType }
-                    : {},
-                ),
-              },
+                    : {}
+                )
+              }
             },
             entity.schema.attributes[attr].partitionKey || entity.schema.attributes[attr].sortKey
               ? { type: entity.schema.attributes[attr].type }
-              : null,
+              : null
           ) // end assign
         } // end if-else Table attribute exists
       } // end for loop to check/add attributes
@@ -322,7 +323,6 @@ class Table<Name extends string, PartitionKey extends A.Key, SortKey extends A.K
       entity?.setTable?.(this)
     }
   }
-
 
   removeEntity(entity: Entity): void {
     if (!(entity instanceof Entity)) {
@@ -378,27 +378,39 @@ class Table<Name extends string, PartitionKey extends A.Key, SortKey extends A.K
   // Table actions
   // ----------------------------------------------------------------//
 
-  async query<Item = DocumentClient.AttributeMap,
+  async query<
+    Item = DocumentClient.AttributeMap,
     Execute extends boolean | undefined = undefined,
-    Parse extends boolean | undefined = undefined>(
+    Parse extends boolean | undefined = undefined
+  >(
     pk: any,
     options: TableQueryOptions<Execute, Parse> = {},
-    params: Partial<DocumentClient.QueryInput> = {},
-  ): Promise<If<A.Equals<Execute, false>,
-    DocumentClient.QueryInput,
-    If<A.Equals<Parse, false>,
-      Compute<DocumentClient.QueryOutput & {
-        next?: () => Promise<DocumentClient.QueryOutput>
-      }>,
-      Compute<O.Update<DocumentClient.QueryOutput, 'Items', Item[]> & {
-        next?: () => Promise<O.Update<DocumentClient.QueryOutput, 'Items', Item[]>>
-      }>>>> {
+    params: Partial<DocumentClient.QueryInput> = {}
+  ): Promise<
+    If<
+      A.Equals<Execute, false>,
+      DocumentClient.QueryInput,
+      If<
+        A.Equals<Parse, false>,
+        Compute<
+          DocumentClient.QueryOutput & {
+            next?: () => Promise<DocumentClient.QueryOutput>
+          }
+        >,
+        Compute<
+          O.Update<DocumentClient.QueryOutput, 'Items', Item[]> & {
+            next?: () => Promise<O.Update<DocumentClient.QueryOutput, 'Items', Item[]>>
+          }
+        >
+      >
+    >
+  > {
     // Generate query parameters with projection data
     const { payload, EntityProjections, TableProjections } = this.queryParams<Execute, Parse>(
       pk,
       options,
       params,
-      true,
+      true
     )
 
     // If auto execute enabled
@@ -410,46 +422,46 @@ class Table<Name extends string, PartitionKey extends A.Key, SortKey extends A.K
         return Object.assign(
           result,
           {
-            Items:
-              result.Items?.map((item: unknown) => {
-                if (typeof item !== 'object' || item === null) {
-                  return item
-                }
-
-                const itemEntityName = options.parseAsEntity ||
-                  (item as Record<string, any>)[this.Table.entityField !== false
-                    ? this.Table.entityField
-                    : undefined as never]
-                if (typeof itemEntityName !== 'string') {
-                  return item
-                }
-
-                if (this[itemEntityName]) {
-                  return this[itemEntityName].parse(
-                    item,
-                    EntityProjections[itemEntityName]
-                      ? EntityProjections[itemEntityName]
-                      : TableProjections
-                        ? TableProjections
-                        : [],
-                  )
-                }
-
+            Items: result.Items?.map((item: unknown) => {
+              if (typeof item !== 'object' || item === null) {
                 return item
-              }),
+              }
+
+              const itemEntityName =
+                options.parseAsEntity ||
+                (item as Record<string, any>)[
+                  this.Table.entityField !== false ? this.Table.entityField : (undefined as never)
+                ]
+              if (typeof itemEntityName !== 'string') {
+                return item
+              }
+
+              if (this[itemEntityName]) {
+                return this[itemEntityName].parse(
+                  item,
+                  EntityProjections[itemEntityName]
+                    ? EntityProjections[itemEntityName]
+                    : TableProjections
+                    ? TableProjections
+                    : []
+                )
+              }
+
+              return item
+            })
           },
           // If last evaluated key, return a next function
           result.LastEvaluatedKey
             ? {
-              next: () => {
-                return this.query(
-                  pk,
-                  Object.assign(options, { startKey: result.LastEvaluatedKey }),
-                  params,
-                )
-              },
-            }
-            : null,
+                next: () => {
+                  return this.query(
+                    pk,
+                    Object.assign(options, { startKey: result.LastEvaluatedKey }),
+                    params
+                  )
+                }
+              }
+            : null
         ) as any
       } else {
         return result
@@ -460,12 +472,14 @@ class Table<Name extends string, PartitionKey extends A.Key, SortKey extends A.K
   }
 
   // Query the table
-  queryParams<Execute extends boolean | undefined = undefined,
-    Parse extends boolean | undefined = undefined>(
+  queryParams<
+    Execute extends boolean | undefined = undefined,
+    Parse extends boolean | undefined = undefined
+  >(
     pk: any,
     options: TableQueryOptions<Execute, Parse> = {},
     params: Partial<DocumentClient.QueryInput> = {},
-    projections = false,
+    projections = false
     // 🔨 TOIMPROVE: Type queryParams return
   ): any {
     // https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Query.html#Query.KeyConditionExpressions
@@ -531,11 +545,11 @@ class Table<Name extends string, PartitionKey extends A.Key, SortKey extends A.K
       select !== undefined &&
       (typeof select !== 'string' ||
         !['ALL_ATTRIBUTES', 'ALL_PROJECTED_ATTRIBUTES', 'SPECIFIC_ATTRIBUTES', 'COUNT'].includes(
-          select.toUpperCase(),
+          select.toUpperCase()
         ))
     ) {
       error(
-        `'select' must be one of 'ALL_ATTRIBUTES', 'ALL_PROJECTED_ATTRIBUTES', 'SPECIFIC_ATTRIBUTES', OR 'COUNT'`,
+        `'select' must be one of 'ALL_ATTRIBUTES', 'ALL_PROJECTED_ATTRIBUTES', 'SPECIFIC_ATTRIBUTES', OR 'COUNT'`
       )
     }
 
@@ -561,7 +575,7 @@ class Table<Name extends string, PartitionKey extends A.Key, SortKey extends A.K
 
     // Default names and values
     let ExpressionAttributeNames: { [key: string]: any } = {
-      '#pk': (index && this.Table.indexes[index].partitionKey) || this.Table.partitionKey,
+      '#pk': (index && this.Table.indexes[index].partitionKey) || this.Table.partitionKey
     }
     let ExpressionAttributeValues: { [key: string]: any } = { ':pk': pk }
     let KeyConditionExpression = '#pk = :pk'
@@ -618,8 +632,8 @@ class Table<Name extends string, PartitionKey extends A.Key, SortKey extends A.K
           ? this.Table.attributes[this.Table.indexes[index].sortKey!] || { type: 'string' }
           : error(`Conditional expressions require the index to have a sortKey`)
         : this.Table.sortKey
-          ? this.Table.attributes[this.Table.sortKey]
-          : error(`Conditional expressions require the table to have a sortKey`)
+        ? this.Table.attributes[this.Table.sortKey]
+        : error(`Conditional expressions require the table to have a sortKey`)
 
       // Init validateType
       const validateType = validateTypes(this.DocumentClient!)
@@ -671,7 +685,7 @@ class Table<Name extends string, PartitionKey extends A.Key, SortKey extends A.K
         attributes,
         this,
         entity!,
-        true,
+        true
       )
 
       if (Object.keys(names).length > 0) {
@@ -689,7 +703,7 @@ class Table<Name extends string, PartitionKey extends A.Key, SortKey extends A.K
         TableName: this.name,
         KeyConditionExpression,
         ExpressionAttributeNames,
-        ExpressionAttributeValues,
+        ExpressionAttributeValues
       },
       FilterExpression ? { FilterExpression } : null,
       ProjectionExpression ? { ProjectionExpression } : null,
@@ -700,31 +714,43 @@ class Table<Name extends string, PartitionKey extends A.Key, SortKey extends A.K
       capacity ? { ReturnConsumedCapacity: capacity.toUpperCase() } : null,
       select ? { Select: select.toUpperCase() } : null,
       startKey ? { ExclusiveStartKey: startKey } : null,
-      typeof params === 'object' ? params : null,
+      typeof params === 'object' ? params : null
     )
 
     return projections ? { payload, EntityProjections, TableProjections } : payload
   } // end query
 
-  async scan<Item = DocumentClient.AttributeMap,
+  async scan<
+    Item = DocumentClient.AttributeMap,
     Execute extends boolean | undefined = undefined,
-    Parse extends boolean | undefined = undefined>(
+    Parse extends boolean | undefined = undefined
+  >(
     options: ScanOptions<Execute, Parse> = {},
-    params: Partial<DocumentClient.ScanInput> = {},
-  ): Promise<If<A.Equals<Execute, false>,
-    DocumentClient.ScanInput,
-    If<A.Equals<Parse, false>,
-      Compute<DocumentClient.ScanOutput & {
-        next?: () => Promise<DocumentClient.ScanOutput>
-      }>,
-      Compute<O.Update<DocumentClient.ScanOutput, 'Items', Item[]> & {
-        next?: () => Promise<O.Update<DocumentClient.ScanOutput, 'Items', Item[]>>
-      }>>>> {
+    params: Partial<DocumentClient.ScanInput> = {}
+  ): Promise<
+    If<
+      A.Equals<Execute, false>,
+      DocumentClient.ScanInput,
+      If<
+        A.Equals<Parse, false>,
+        Compute<
+          DocumentClient.ScanOutput & {
+            next?: () => Promise<DocumentClient.ScanOutput>
+          }
+        >,
+        Compute<
+          O.Update<DocumentClient.ScanOutput, 'Items', Item[]> & {
+            next?: () => Promise<O.Update<DocumentClient.ScanOutput, 'Items', Item[]>>
+          }
+        >
+      >
+    >
+  > {
     // Generate query parameters with meta data
     const { payload, EntityProjections, TableProjections } = this.scanParams<Execute, Parse>(
       options,
       params,
-      true,
+      true
     )
 
     // If auto execute enabled
@@ -737,8 +763,11 @@ class Table<Name extends string, PartitionKey extends A.Key, SortKey extends A.K
           result,
           {
             Items: result.Items?.map(item => {
-              const itemEntityName = options.parseAsEntity ||
-                item[this.Table.entityField !== false ? this.Table.entityField : undefined as never]
+              const itemEntityName =
+                options.parseAsEntity ||
+                item[
+                  this.Table.entityField !== false ? this.Table.entityField : (undefined as never)
+                ]
               const itemEntityInstance = this[itemEntityName]
 
               if (itemEntityInstance != null) {
@@ -747,25 +776,25 @@ class Table<Name extends string, PartitionKey extends A.Key, SortKey extends A.K
                   EntityProjections[itemEntityName]
                     ? EntityProjections[itemEntityName]
                     : TableProjections
-                      ? TableProjections
-                      : [],
+                    ? TableProjections
+                    : []
                 )
               } else {
                 return item
               }
-            }),
+            })
           },
           // If last evaluated key, return a next function
           result.LastEvaluatedKey
             ? {
-              next: () => {
-                return this.scan(
-                  Object.assign(options, { startKey: result.LastEvaluatedKey }),
-                  params,
-                )
-              },
-            }
-            : null,
+                next: () => {
+                  return this.scan(
+                    Object.assign(options, { startKey: result.LastEvaluatedKey }),
+                    params
+                  )
+                }
+              }
+            : null
         ) as any
       } else {
         return result as any
@@ -776,11 +805,13 @@ class Table<Name extends string, PartitionKey extends A.Key, SortKey extends A.K
   }
 
   // Generate SCAN Parameters
-  scanParams<Execute extends boolean | undefined = undefined,
-    Parse extends boolean | undefined = undefined>(
+  scanParams<
+    Execute extends boolean | undefined = undefined,
+    Parse extends boolean | undefined = undefined
+  >(
     options: ScanOptions<Execute, Parse> = {},
     params: Partial<DocumentClient.ScanInput> = {},
-    meta = false,
+    meta = false
     // 🔨 TOIMPROVE: Type scanParams return
   ): any {
     // https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Query.html#Query.KeyConditionExpressions
@@ -829,11 +860,11 @@ class Table<Name extends string, PartitionKey extends A.Key, SortKey extends A.K
       select !== undefined &&
       (typeof select !== 'string' ||
         !['ALL_ATTRIBUTES', 'ALL_PROJECTED_ATTRIBUTES', 'SPECIFIC_ATTRIBUTES', 'COUNT'].includes(
-          select.toUpperCase(),
+          select.toUpperCase()
         ))
     ) {
       error(
-        `'select' must be one of 'ALL_ATTRIBUTES', 'ALL_PROJECTED_ATTRIBUTES', 'SPECIFIC_ATTRIBUTES', OR 'COUNT'`,
+        `'select' must be one of 'ALL_ATTRIBUTES', 'ALL_PROJECTED_ATTRIBUTES', 'SPECIFIC_ATTRIBUTES', OR 'COUNT'`
       )
     }
 
@@ -867,7 +898,7 @@ class Table<Name extends string, PartitionKey extends A.Key, SortKey extends A.K
       (!Number.isInteger(segment) || segment < 0 || segment >= segments!)
     ) {
       error(
-        `'segment' must be an integer greater than or equal to 0 and less than the total number of segments`,
+        `'segment' must be an integer greater than or equal to 0 and less than the total number of segments`
       )
     }
 
@@ -908,7 +939,7 @@ class Table<Name extends string, PartitionKey extends A.Key, SortKey extends A.K
         attributes,
         this,
         entity!,
-        true,
+        true
       )
 
       if (Object.keys(names).length > 0) {
@@ -923,7 +954,7 @@ class Table<Name extends string, PartitionKey extends A.Key, SortKey extends A.K
     // Generate the payload
     const payload = Object.assign(
       {
-        TableName: this.name,
+        TableName: this.name
       },
       Object.keys(ExpressionAttributeNames).length ? { ExpressionAttributeNames } : null,
       Object.keys(ExpressionAttributeValues).length ? { ExpressionAttributeValues } : null,
@@ -937,7 +968,7 @@ class Table<Name extends string, PartitionKey extends A.Key, SortKey extends A.K
       capacity ? { ReturnConsumedCapacity: capacity.toUpperCase() } : null,
       select ? { Select: select.toUpperCase() } : null,
       startKey ? { ExclusiveStartKey: startKey } : null,
-      typeof params === 'object' ? params : null,
+      typeof params === 'object' ? params : null
     )
 
     return meta ? { payload, EntityProjections, TableProjections } : payload
@@ -947,14 +978,14 @@ class Table<Name extends string, PartitionKey extends A.Key, SortKey extends A.K
   async batchGet(
     items: any,
     options: BatchGetOptions = {},
-    params: Partial<DocumentClient.BatchGetItemInput> = {},
+    params: Partial<DocumentClient.BatchGetItemInput> = {}
   ) {
     // Generate the payload with meta information
     const {
       payload, // batchGet payload
       Tables, // table reference
       EntityProjections,
-      TableProjections,
+      TableProjections
     } = this.batchGetParams(items, options, params, true) as BatchGetParamsMeta
 
     const shouldExecute = options.execute || (this.autoExecute && options.execute !== false)
@@ -969,13 +1000,7 @@ class Table<Name extends string, PartitionKey extends A.Key, SortKey extends A.K
       return result
     }
 
-    return this.parseBatchGetResponse(
-      result,
-      Tables,
-      EntityProjections,
-      TableProjections,
-      options,
-    )
+    return this.parseBatchGetResponse(result, Tables, EntityProjections, TableProjections, options)
   }
 
   parseBatchGetResponse(
@@ -984,68 +1009,68 @@ class Table<Name extends string, PartitionKey extends A.Key, SortKey extends A.K
     Tables: any,
     EntityProjections: { [key: string]: any },
     TableProjections: { [key: string]: string[] },
-    options: BatchGetOptions = {},
+    options: BatchGetOptions = {}
   ) {
     return Object.assign(
       result,
       // If reponses exist
       result.Responses
         ? {
-          // Loop through the tables
-          Responses: Object.keys(result.Responses).reduce((acc, table) => {
-            // Merge in tables
-            return Object.assign(acc, {
-              // Map over the items
-              [(Tables[table] && Tables[table].alias) || table]: result.Responses[table].map(
-                (item: TableDef) => {
-                  // Check that the table has a reference, the entityField exists, and that the entity type exists on
-                  // the table
-                  if (
-                    Tables[table] &&
-                    Tables[table][item[String(Tables[table].Table.entityField)]]
-                  ) {
-                    // Parse the item and pass in projection references
-                    return Tables[table][item[String(Tables[table].Table.entityField)]].parse(
-                      item,
-                      EntityProjections[table] &&
-                      EntityProjections[table][item[String(Tables[table].Table.entityField)]]
-                        ? EntityProjections[table][item[String(Tables[table].Table.entityField)]]
-                        : TableProjections[table]
+            // Loop through the tables
+            Responses: Object.keys(result.Responses).reduce((acc, table) => {
+              // Merge in tables
+              return Object.assign(acc, {
+                // Map over the items
+                [(Tables[table] && Tables[table].alias) || table]: result.Responses[table].map(
+                  (item: TableDef) => {
+                    // Check that the table has a reference, the entityField exists, and that the entity type exists on
+                    // the table
+                    if (
+                      Tables[table] &&
+                      Tables[table][item[String(Tables[table].Table.entityField)]]
+                    ) {
+                      // Parse the item and pass in projection references
+                      return Tables[table][item[String(Tables[table].Table.entityField)]].parse(
+                        item,
+                        EntityProjections[table] &&
+                          EntityProjections[table][item[String(Tables[table].Table.entityField)]]
+                          ? EntityProjections[table][item[String(Tables[table].Table.entityField)]]
+                          : TableProjections[table]
                           ? TableProjections[table]
-                          : [],
-                    )
-                    // Else, just return the original item
-                  } else {
-                    return item
+                          : []
+                      )
+                      // Else, just return the original item
+                    } else {
+                      return item
+                    }
                   }
-                },
-              ), // end item map
-            }) // end assign
-          }, {}), // end table reduce
-        }
+                ) // end item map
+              }) // end assign
+            }, {}) // end table reduce
+          }
         : null, // end if Responses
       // If UnprocessedKeys, return a next function
       result.UnprocessedKeys && Object.keys(result.UnprocessedKeys).length > 0
         ? {
-          next: async (): Promise<any> => {
-            const nextResult = await this.DocumentClient!.batchGet(
-              Object.assign(
-                { RequestItems: result.UnprocessedKeys },
-                options.capacity
-                  ? { ReturnConsumedCapacity: options.capacity.toUpperCase() }
-                  : null,
-              ),
-            ).promise()
-            return this.parseBatchGetResponse(
-              nextResult,
-              Tables,
-              EntityProjections,
-              TableProjections,
-              options,
-            )
-          },
-        }
-        : { next: () => false }, // TODO: How should this return?
+            next: async (): Promise<any> => {
+              const nextResult = await this.DocumentClient!.batchGet(
+                Object.assign(
+                  { RequestItems: result.UnprocessedKeys },
+                  options.capacity
+                    ? { ReturnConsumedCapacity: options.capacity.toUpperCase() }
+                    : null
+                )
+              ).promise()
+              return this.parseBatchGetResponse(
+                nextResult,
+                Tables,
+                EntityProjections,
+                TableProjections,
+                options
+              )
+            }
+          }
+        : { next: () => false } // TODO: How should this return?
     ) // end parse assign
   } // end parseBatchGetResponse
 
@@ -1054,7 +1079,7 @@ class Table<Name extends string, PartitionKey extends A.Key, SortKey extends A.K
     _items: any,
     options: BatchGetOptions = {},
     params: Partial<DocumentClient.BatchGetItemInput> = {},
-    meta = false,
+    meta = false
   ) {
     const items = Array.isArray(_items) ? _items : [_items]
 
@@ -1155,7 +1180,7 @@ class Table<Name extends string, PartitionKey extends A.Key, SortKey extends A.K
             (attrs as ProjectionAttributesTable)[tbl],
             Tables[tbl_name],
             null,
-            true,
+            true
           )
           RequestItems[tbl_name].ExpressionAttributeNames = names
           RequestItems[tbl_name].ProjectionExpression = projections
@@ -1170,16 +1195,16 @@ class Table<Name extends string, PartitionKey extends A.Key, SortKey extends A.K
     const payload = Object.assign(
       { RequestItems },
       capacity ? { ReturnConsumedCapacity: capacity.toUpperCase() } : null,
-      typeof params === 'object' ? params : null,
+      typeof params === 'object' ? params : null
     )
 
     return meta
       ? {
-        payload,
-        Tables,
-        EntityProjections,
-        TableProjections,
-      }
+          payload,
+          Tables,
+          EntityProjections,
+          TableProjections
+        }
       : payload
   } // batchGetParams
 
@@ -1187,13 +1212,13 @@ class Table<Name extends string, PartitionKey extends A.Key, SortKey extends A.K
   async batchWrite(
     items: any,
     options: batchWriteOptions = {},
-    params: Partial<DocumentClient.BatchWriteItemInput> = {},
+    params: Partial<DocumentClient.BatchWriteItemInput> = {}
   ) {
     // Generate the payload with meta information
     const payload = this.batchWriteParams(
       items,
       options,
-      params,
+      params
     ) as DocumentClient.BatchWriteItemInput
 
     // If auto execute enabled
@@ -1219,22 +1244,22 @@ class Table<Name extends string, PartitionKey extends A.Key, SortKey extends A.K
       // If UnprocessedItems, return a next function
       result.UnprocessedItems && Object.keys(result.UnprocessedItems).length > 0
         ? {
-          next: async () => {
-            const nextResult = await this.DocumentClient!.batchWrite(
-              Object.assign(
-                { RequestItems: result.UnprocessedItems },
-                options.capacity
-                  ? { ReturnConsumedCapacity: options.capacity.toUpperCase() }
-                  : null,
-                options.metrics
-                  ? { ReturnItemCollectionMetrics: options.metrics.toUpperCase() }
-                  : null,
-              ),
-            ).promise()
-            return this.parseBatchWriteResponse(nextResult, options)
-          },
-        }
-        : { next: () => false }, // TODO: How should this return?
+            next: async () => {
+              const nextResult = await this.DocumentClient!.batchWrite(
+                Object.assign(
+                  { RequestItems: result.UnprocessedItems },
+                  options.capacity
+                    ? { ReturnConsumedCapacity: options.capacity.toUpperCase() }
+                    : null,
+                  options.metrics
+                    ? { ReturnItemCollectionMetrics: options.metrics.toUpperCase() }
+                    : null
+                )
+              ).promise()
+              return this.parseBatchWriteResponse(nextResult, options)
+            }
+          }
+        : { next: () => false } // TODO: How should this return?
     ) // end parse assign
   } // end parseBatchWriteResponse
 
@@ -1250,7 +1275,7 @@ class Table<Name extends string, PartitionKey extends A.Key, SortKey extends A.K
     _items: any,
     options: batchWriteOptions = {},
     params: Partial<DocumentClient.BatchWriteItemInput> = {},
-    meta = false,
+    meta = false
   ) {
     // Convert items to array
     const items = (Array.isArray(_items) ? _items : [_items]).filter(x => x)
@@ -1304,7 +1329,7 @@ class Table<Name extends string, PartitionKey extends A.Key, SortKey extends A.K
       { RequestItems },
       capacity ? { ReturnConsumedCapacity: capacity.toUpperCase() } : null,
       metrics ? { ReturnItemCollectionMetrics: metrics.toUpperCase() } : null,
-      typeof params === 'object' ? params : null,
+      typeof params === 'object' ? params : null
     )
 
     const Tables = {}
@@ -1319,14 +1344,14 @@ class Table<Name extends string, PartitionKey extends A.Key, SortKey extends A.K
    */
   async transactGet(
     items: ({ Entity?: any } & DocumentClient.TransactGetItem)[] = [],
-    options: transactGetOptions = {},
+    options: transactGetOptions = {}
     // params: Partial<DocumentClient.TransactGetItemsInput> = {}
   ) {
     // Generate the payload with meta information
     const { payload, Entities } = this.transactGetParams(
       items,
       options,
-      true,
+      true
     ) as TransactGetParamsMeta
 
     // If auto execute enabled
@@ -1339,15 +1364,15 @@ class Table<Name extends string, PartitionKey extends A.Key, SortKey extends A.K
           result,
           result.Responses
             ? {
-              Responses: result.Responses!.map((res, i) => {
-                if (res.Item) {
-                  return { Item: Entities[i].parse ? Entities[i].parse(res.Item) : res.Item }
-                } else {
-                  return {}
-                }
-              }),
-            }
-            : null,
+                Responses: result.Responses!.map((res, i) => {
+                  if (res.Item) {
+                    return { Item: Entities[i].parse ? Entities[i].parse(res.Item) : res.Item }
+                  } else {
+                    return {}
+                  }
+                })
+              }
+            : null
         ) as DocumentClient.TransactGetItemsOutput
       } else {
         return result as DocumentClient.TransactGetItemsOutput
@@ -1368,17 +1393,17 @@ class Table<Name extends string, PartitionKey extends A.Key, SortKey extends A.K
   transactGetParams(
     _items: ({ Entity?: any } & DocumentClient.TransactGetItem)[],
     options?: transactGetParamsOptions,
-    meta?: false | undefined,
+    meta?: false | undefined
   ): DocumentClient.TransactGetItemsInput
   transactGetParams(
     _items: ({ Entity?: any } & DocumentClient.TransactGetItem)[],
     options: transactGetParamsOptions,
-    meta: true,
+    meta: true
   ): TransactGetParamsMeta
   transactGetParams(
     _items: ({ Entity?: any } & DocumentClient.TransactGetItem)[],
     options: transactGetParamsOptions = {},
-    meta = false,
+    meta = false
   ): DocumentClient.TransactGetItemsInput | TransactGetParamsMeta {
     const items = Array.isArray(_items) ? _items : _items ? [_items] : []
 
@@ -1419,9 +1444,9 @@ class Table<Name extends string, PartitionKey extends A.Key, SortKey extends A.K
             error(`Invalid transaction item. Use the 'getTransaction' method on an entity.`)
           }
           return _item
-        }),
+        })
       },
-      capacity ? { ReturnConsumedCapacity: capacity.toUpperCase() } : null,
+      capacity ? { ReturnConsumedCapacity: capacity.toUpperCase() } : null
     )
 
     // Return transact items
@@ -1438,7 +1463,7 @@ class Table<Name extends string, PartitionKey extends A.Key, SortKey extends A.K
   async transactWrite(
     items: DocumentClient.TransactWriteItemList,
     options: TransactWriteOptions = {},
-    params?: Partial<DocumentClient.TransactWriteItemsInput>,
+    params?: Partial<DocumentClient.TransactWriteItemsInput>
   ) {
     // Generate the payload with meta information
     const payload = this.transactWriteParams(items, options, params)
@@ -1470,7 +1495,7 @@ class Table<Name extends string, PartitionKey extends A.Key, SortKey extends A.K
   transactWriteParams(
     _items: DocumentClient.TransactWriteItemList,
     options: transactWriteParamsOptions = {},
-    params: Partial<DocumentClient.TransactWriteItemsInput> = {},
+    params: Partial<DocumentClient.TransactWriteItemsInput> = {}
   ): DocumentClient.TransactWriteItemsInput {
     const items = Array.isArray(_items) ? _items : _items ? [_items] : []
 
@@ -1530,16 +1555,16 @@ class Table<Name extends string, PartitionKey extends A.Key, SortKey extends A.K
             Object.keys(item).length > 1
           ) {
             error(
-              `Invalid transaction item. Use the 'putTransaction', 'updateTransaction', 'deleteTransaction', or 'conditionCheck' methods on an entity.`,
+              `Invalid transaction item. Use the 'putTransaction', 'updateTransaction', 'deleteTransaction', or 'conditionCheck' methods on an entity.`
             )
           }
           return item
-        }),
+        })
       },
       capacity ? { ReturnConsumedCapacity: capacity.toUpperCase() } : null,
       metrics ? { ReturnItemCollectionMetrics: metrics.toUpperCase() } : null,
       token ? { ClientRequestToken: token.trim() } : null,
-      typeof params === 'object' ? params : {},
+      typeof params === 'object' ? params : {}
     )
 
     return payload
