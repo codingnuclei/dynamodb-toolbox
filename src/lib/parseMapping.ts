@@ -164,13 +164,13 @@ export default (
     },
     alias
       ? {
-        [alias]: Object.assign({}, _config, { map: field })
-      }
+          [alias]: Object.assign({}, _config, { map: field })
+        }
       : {},
     map
       ? {
-        [map]: Object.assign({}, _config, { alias: field })
-      }
+          [map]: Object.assign({}, _config, { alias: field })
+        }
       : {}
   ) // end assign
 }
